@@ -1,0 +1,33 @@
+# FASE 0 - Configuration Management
+project:
+  seed: 42
+  name: "WESAD_HSSL_DPBL"
+
+paths:
+  raw_data: "data/raw/"
+  processed_data: "data/processed/"
+  normalized_data: "data/normalized/"
+  checkpoints: "checkpoints/"
+  embeddings: "embeddings/"
+  logs: "logs/"
+  reports: "reports/"
+  results: "results/"
+  experiments: "experiments/"
+
+# Placeholder for upcoming phases
+preprocessing:
+  window_size: 60
+  overlap: 0.5
+  
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+
+# Phase 6 - Evaluation
+evaluation:
+  metrics: ["accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]
+  export_fold_results: true
+  export_model_summary: true
+  validate_completeness: true
+  reevaluate_from_predictions: false

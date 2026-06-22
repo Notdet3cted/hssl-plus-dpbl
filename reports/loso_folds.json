@@ -1,0 +1,347 @@
+{
+    "S2": {
+        "train": [
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S2"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S2.pkl",
+        "normalized_data_dir": "data/normalized/fold_S2"
+    },
+    "S3": {
+        "train": [
+            "S2",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S3"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S3.pkl",
+        "normalized_data_dir": "data/normalized/fold_S3"
+    },
+    "S4": {
+        "train": [
+            "S2",
+            "S3",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S4"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S4.pkl",
+        "normalized_data_dir": "data/normalized/fold_S4"
+    },
+    "S5": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S5"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S5.pkl",
+        "normalized_data_dir": "data/normalized/fold_S5"
+    },
+    "S6": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S6"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S6.pkl",
+        "normalized_data_dir": "data/normalized/fold_S6"
+    },
+    "S7": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S7"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S7.pkl",
+        "normalized_data_dir": "data/normalized/fold_S7"
+    },
+    "S8": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S8"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S8.pkl",
+        "normalized_data_dir": "data/normalized/fold_S8"
+    },
+    "S9": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S9"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S9.pkl",
+        "normalized_data_dir": "data/normalized/fold_S9"
+    },
+    "S10": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S10"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S10.pkl",
+        "normalized_data_dir": "data/normalized/fold_S10"
+    },
+    "S11": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S13",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S11"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S11.pkl",
+        "normalized_data_dir": "data/normalized/fold_S11"
+    },
+    "S13": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S14",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S13"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S13.pkl",
+        "normalized_data_dir": "data/normalized/fold_S13"
+    },
+    "S14": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S15",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S14"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S14.pkl",
+        "normalized_data_dir": "data/normalized/fold_S14"
+    },
+    "S15": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S16",
+            "S17"
+        ],
+        "test": [
+            "S15"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S15.pkl",
+        "normalized_data_dir": "data/normalized/fold_S15"
+    },
+    "S16": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S17"
+        ],
+        "test": [
+            "S16"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S16.pkl",
+        "normalized_data_dir": "data/normalized/fold_S16"
+    },
+    "S17": {
+        "train": [
+            "S2",
+            "S3",
+            "S4",
+            "S5",
+            "S6",
+            "S7",
+            "S8",
+            "S9",
+            "S10",
+            "S11",
+            "S13",
+            "S14",
+            "S15",
+            "S16"
+        ],
+        "test": [
+            "S17"
+        ],
+        "scaler_path": "checkpoints/scalers\\scaler_fold_S17.pkl",
+        "normalized_data_dir": "data/normalized/fold_S17"
+    }
+}

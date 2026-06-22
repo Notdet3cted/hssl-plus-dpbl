@@ -1,0 +1,50 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch
+*.pt
+*.pth
+
+# Dataset / Embeddings / Results (Keep structure but ignore content)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/windowed/*
+!data/windowed/.gitkeep
+data/normalized/*
+!data/normalized/.gitkeep
+
+embeddings/hssl/*
+!embeddings/hssl/.gitkeep
+embeddings/hssl_dpbl/*
+!embeddings/hssl_dpbl/.gitkeep
+
+checkpoints/*
+!checkpoints/.gitkeep
+
+experiments/*
+!experiments/.gitkeep
+
+logs/*
+!logs/.gitkeep
+
+results/*
+!results/.gitkeep
+!results/figures/.gitkeep
+!results/final_report/.gitkeep
+!results/final_tables/.gitkeep
+!results/predictions/.gitkeep
+!results/robustness/.gitkeep
+!results/statistical_analysis/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+
+# Virtual environments
+venv/
+env/
+.env

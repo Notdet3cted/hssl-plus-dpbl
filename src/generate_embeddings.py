@@ -1,0 +1,101 @@
+import os
+import json
+import pickle
+import torch
+from torch.utils.data import DataLoader
+from src.logger import setup_logger
+from src.experiment_tracker import ExperimentTracker
+from src.models.hssl import HSSLEncoder
+from src.train_hssl import WESADDataset
+
+class EmbeddingGenerator:
+    def __init__(self):
+        self.logger = setup_logger("EmbeddingGenerator")
+        self.tracker = ExperimentTracker()
+        self.checkpoints_dir = self.tracker.config["paths"].get("checkpoints", "checkpoints")
+        self.reports_dir = self.tracker.config["paths"].get("reports", "reports")
+        self.embeddings_dir = os.path.join("embeddings", "hssl")
+        os.makedirs(self.embeddings_dir, exist_ok=True)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+    def generate_fold(self, test_subject, window_size=700):
+        self.logger.info(f"Generating embeddings for Fold: {test_subject}")
+        fold_ckpt_dir = os.path.join(self.checkpoints_dir, f"hssl_fold_{test_subject}")
+        best_path = os.path.join(fold_ckpt_dir, "best.pt")
+        
+        folds_path = os.path.join(self.reports_dir, "loso_folds.json")
+        with open(folds_path, 'r') as f:
+            folds = json.load(f)
+            
+        if test_subject not in folds:
+            raise ValueError(f"Fold for {test_subject} not found.")
+            
+        norm_dir = folds[test_subject]["normalized_data_dir"]
+        subjects = folds[test_subject]["train"] + folds[test_subject]["test"]
+        
+        # Determine channels dynamically based on one subject
+        sample_path = os.path.join(norm_dir, f"{subjects[0]}_normalized.pkl")
+        with open(sample_path, 'rb') as f:
+             sample_data = pickle.load(f)
+        feat = sample_data["features"]
+        channels = feat.shape[1] if feat.ndim > 1 else 1
+        
+        self.model = HSSLEncoder(input_channels=channels).to(self.device)
+        if os.path.exists(best_path):
+            self.model.load_state_dict(torch.load(best_path, map_location=self.device))
+            self.model.eval()
+            self.logger.info(f"Loaded best HSSL checkpoint from {best_path}.")
+        else:
+            self.logger.error(f"No checkpoint found at {best_path}. Run training first.")
+            return
+            
+        fold_emb_dir = os.path.join(self.embeddings_dir, f"fold_{test_subject}")
+        os.makedirs(fold_emb_dir, exist_ok=True)
+        
+        for subj in subjects:
+            path = os.path.join(norm_dir, f"{subj}_normalized.pkl")
+            with open(path, 'rb') as f:
+                data = pickle.load(f)
+                
+            dataset = WESADDataset([data], window_size=window_size)
+            if len(dataset) == 0:
+                self.logger.warning(f"No windows generated for {subj}. Skipping.")
+                continue
+                
+            dataloader = DataLoader(dataset, batch_size=128, shuffle=False)
+            
+            all_micro = []
+            all_macro = []
+            
+            all_labels = []
+            
+            with torch.no_grad():
+                for x, l in dataloader:
+                    x = x.to(self.device)
+                    micro_h, macro_h, _ = self.model(x)
+                    all_micro.append(micro_h.cpu().numpy())
+                    all_macro.append(macro_h.cpu().numpy())
+                    all_labels.append(l.cpu().numpy())
+                    
+            import numpy as np
+            # micro_h shape: (Batch, Hidden, Temporal), macro_h shape: (Batch, Hidden)
+            res = {
+                "micro": np.concatenate(all_micro, axis=0),
+                "macro": np.concatenate(all_macro, axis=0),
+                "labels": np.concatenate(all_labels, axis=0)
+            }
+            
+            out_path = os.path.join(fold_emb_dir, f"{subj}_embeddings.pkl")
+            with open(out_path, 'wb') as f:
+                pickle.dump(res, f)
+                
+            self.logger.info(f"Saved embeddings for {subj} -> {out_path} (Macro shape: {res['macro'].shape})")
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--test_subject", type=str, default="S2")
+    args = parser.parse_args()
+    
+    generator = EmbeddingGenerator()
+    generator.generate_fold(test_subject=args.test_subject)
