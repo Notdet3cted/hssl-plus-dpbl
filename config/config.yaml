@@ -14,20 +14,51 @@ paths:
   results: "results/"
   experiments: "experiments/"
 
-# Placeholder for upcoming phases
 preprocessing:
-  window_size: 60
+  window_size: 700
   overlap: 0.5
-  
+  target_fps: 35
+
 training:
-  batch_size: 32
+  batch_size: 128
   epochs: 100
   learning_rate: 0.001
+  weight_decay: 0.0001
 
-# Phase 6 - Evaluation
+ssl_pretraining:
+  epochs: 50
+  batch_size: 128
+  learning_rate: 0.05
+  momentum: 0.9
+  weight_decay: 0.0001
+
+dpbl:
+  hidden_dim: 128
+  n_calibration_windows: 30
+
 evaluation:
   metrics: ["accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]
   export_fold_results: true
   export_model_summary: true
   validate_completeness: true
   reevaluate_from_predictions: false
+
+models:
+  include_ablation:
+    rf: true
+    cnn: true
+    ssl: true
+    hssl: true
+    ssl_dpbl: true
+    hssl_dpbl: true
+  cnn:
+    channels: [64, 128, 256]
+    kernels: [7, 5, 3]
+    dropout: 0.4
+  rf:
+    n_estimators: 200
+    class_weight: "balanced"
+  embedding_classifier:
+    hidden_dim: 128
+    dropout: 0.4
+    learning_rate: 0.001

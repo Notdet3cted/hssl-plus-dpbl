@@ -21,24 +21,27 @@ class DpblEmbeddingGenerator:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.tracker_bsl = BaselineTracker()
         
-    def get_labels_and_baseline(self, subject, norm_dir):
-        # Shared logic with trainer, can be refactored later
+    def compute_baseline_no_label(self, emb_data, n_calibration=30):
+        """Compute baseline from first n_calibration windows (no labels)."""
+        macro = emb_data["macro"]
+        n = min(n_calibration, len(macro))
+        return np.mean(macro[:n], axis=0)
+
+    def get_window_labels(self, subject, norm_dir):
+        """Extract window labels from normalized data."""
         norm_path = os.path.join(norm_dir, f"{subject}_normalized.pkl")
         with open(norm_path, 'rb') as f:
             data = pickle.load(f)
-            
         labels = data["labels"]
         window_size = 700
         overlap = 0.5
         step = max(1, int(window_size * (1 - overlap)))
-        
         window_labels = []
         n_samples = len(labels)
         for i in range(0, n_samples - window_size + 1, step):
             w_lbls = labels[i:i+window_size]
             val, counts = np.unique(w_lbls, return_counts=True)
             window_labels.append(val[np.argmax(counts)])
-            
         return np.array(window_labels)
 
     def generate_fold(self, test_subject):
@@ -90,18 +93,11 @@ class DpblEmbeddingGenerator:
             with open(emb_path_in, 'rb') as f:
                 emb_data = pickle.load(f)
                 
-            labels = self.get_labels_and_baseline(subj, norm_dir)
+            labels = self.get_window_labels(subj, norm_dir)
             
-            try:
-                baseline = self.tracker_bsl.get_baseline(subj)
-            except ValueError:
-                # If subject wasn't in training, calculate their baseline now (for inference/test subject)
-                self.logger.info(f"Baseline for {subj} not found. Calculating from their data...")
-                base_idx = np.where(labels[:len(emb_data["macro"])] == 1)[0]
-                if len(base_idx) > 0:
-                    baseline = self.tracker_bsl.update_baseline(subj, emb_data["macro"][base_idx])
-                else:
-                    baseline = self.tracker_bsl.update_baseline(subj, emb_data["macro"][:50])
+            # Compute baseline from first N windows (no labels) for all subjects
+            # For test subjects that weren't in training, this is the only option
+            baseline = self.compute_baseline_no_label(emb_data, n_calibration=30)
                 
             dataset = DpblDataset(emb_data, labels, baseline)
             dataloader = DataLoader(dataset, batch_size=128, shuffle=False)
@@ -119,8 +115,8 @@ class DpblEmbeddingGenerator:
             # Repackage with original micro if needed, and new personalized macro
             res = {
                 "micro": emb_data.get("micro", None),
-                "macro_hssl": emb_data["macro"][:len(res_macro)], # original
-                "macro_dpbl": res_macro, # personalized
+                "macro_hssl": emb_data["macro"][:len(res_macro)],
+                "macro_dpbl": res_macro,
                 "labels": labels[:len(res_macro)]
             }
             
@@ -129,6 +125,7 @@ class DpblEmbeddingGenerator:
                 pickle.dump(res, f)
                 
             self.logger.info(f"Saved DPBL embeddings for {subj} -> {out_path} (Shape: {res_macro.shape})")
+
 
 if __name__ == "__main__":
     import argparse

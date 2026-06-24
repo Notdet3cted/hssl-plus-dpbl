@@ -56,6 +56,8 @@ class ClassifierTrainer:
         self.windowed_dir = os.path.join("data", "windowed")
         self.hssl_embeddings_dir = os.path.join("embeddings", "hssl")
         self.dpbl_embeddings_dir = os.path.join("embeddings", "hssl_dpbl")
+        self.ssl_embeddings_dir = os.path.join("embeddings", "ssl")
+        self.ssl_dpbl_embeddings_dir = os.path.join("embeddings", "ssl_dpbl")
         self.results_dir = os.path.join("results")
         self.predictions_dir = os.path.join("results", "predictions")
         os.makedirs(self.results_dir, exist_ok=True)
@@ -89,7 +91,7 @@ class ClassifierTrainer:
         X_test, y_test = _load_group(test_subjs)
         return X_train, y_train, X_test, y_test
 
-    def load_embeddings(self, test_subject, emb_dir):
+    def load_embeddings(self, test_subject, emb_dir, use_dpbl=False):
         train_subjs = self.folds[test_subject]["train"]
         test_subjs = self.folds[test_subject]["test"]
         fold_dir = os.path.join(emb_dir, f"fold_{test_subject}")
@@ -101,7 +103,13 @@ class ClassifierTrainer:
                     continue
                 with open(path, 'rb') as f:
                     data = pickle.load(f)
-                key = "macro_dpbl" if "macro_dpbl" in data else "macro"
+                # DPBL dir: use macro_dpbl. SSL dir: use macro_ssl. HSSL dir: use macro.
+                if use_dpbl and "macro_dpbl" in data:
+                    key = "macro_dpbl"
+                elif "macro_ssl" in data:
+                    key = "macro_ssl"
+                else:
+                    key = "macro"
                 X_all.append(data[key])
                 y_all.append(data["labels"][:len(data[key])])
             return np.concatenate(X_all), np.concatenate(y_all)
@@ -321,20 +329,23 @@ class ClassifierTrainer:
 
     def run_all(self, test_subject, epochs=30, models_to_run=None):
         if models_to_run is None:
-            models_to_run = ["rf", "cnn", "hssl", "hssl+dpbl"]
+            models_to_run = ["rf", "cnn", "ssl", "hssl", "ssl+dpbl", "hssl+dpbl"]
             
         if "rf" in models_to_run:
             self.train_rf(test_subject)
         if "cnn" in models_to_run:
             self.train_cnn(test_subject, epochs=epochs)
+        if "ssl" in models_to_run:
+            self.train_embedding_classifier(test_subject, self.ssl_embeddings_dir, "SSL", epochs=epochs)
         if "hssl" in models_to_run:
             self.train_embedding_classifier(test_subject, self.hssl_embeddings_dir, "HSSL", epochs=epochs)
+        if "ssl+dpbl" in models_to_run:
+            self.train_embedding_classifier(test_subject, self.ssl_dpbl_embeddings_dir, "SSL+DPBL", epochs=epochs)
         if "hssl+dpbl" in models_to_run:
             self.train_embedding_classifier(test_subject, self.dpbl_embeddings_dir, "HSSL+DPBL", epochs=epochs)
 
     def train_hssl_dpbl(self, test_subject, epochs=30):
         self.train_embedding_classifier(test_subject, self.dpbl_embeddings_dir, "HSSL+DPBL", epochs=epochs)
-
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()

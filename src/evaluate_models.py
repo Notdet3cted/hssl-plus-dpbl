@@ -19,8 +19,8 @@ from src.logger import setup_logger
 
 logger = setup_logger("ModelEvaluator")
 
-# DPBL standalone removed — only ensemble hssl+dpbl is evaluated
-MODELS = ["rf", "cnn", "hssl", "hssl+dpbl"]
+# All ablation models
+MODELS = ["rf", "cnn", "ssl", "hssl", "ssl+dpbl", "hssl+dpbl"]
 METRICS = ["accuracy", "precision", "recall", "f1_score", "weighted_precision", "weighted_recall", "weighted_f1", "roc_auc", "pr_auc"]
 
 

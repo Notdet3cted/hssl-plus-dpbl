@@ -17,9 +17,10 @@ def run_command(command, step_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run the full WESAD Stress Detection Pipeline")
     parser.add_argument("--epochs", type=int, default=30, help="Epochs for training models")
+    parser.add_argument("--ssl_epochs", type=int, default=100, help="Epochs for SSL pre-training")
     parser.add_argument("--robust_iter", type=int, default=30, help="Iterations for robustness testing")
     parser.add_argument("--mode", type=str, default="all", 
-                        choices=["all", "data_prep", "server_a", "server_b", "server_c", "server_d", "eval"],
+                        choices=["all", "data_prep", "server_a", "server_ssl", "server_b", "server_c", "server_d", "eval"],
                         help="Execution mode for distributed training across multiple servers")
     args = parser.parse_args()
 

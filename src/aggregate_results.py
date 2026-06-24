@@ -13,7 +13,7 @@ from src.logger import setup_logger
 
 logger = setup_logger("AggregateResults")
 
-MODELS = ["rf", "cnn", "hssl", "hssl+dpbl"]
+MODELS = ["rf", "cnn", "ssl", "hssl", "ssl+dpbl", "hssl+dpbl"]
 METRICS = ["accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]
 
 
