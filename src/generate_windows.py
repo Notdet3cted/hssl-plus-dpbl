@@ -1,10 +1,19 @@
 import os
 import json
 import pickle
+import yaml
 import numpy as np
 from src.logger import setup_logger
 
 logger = setup_logger("GenerateWindows")
+
+def _load_window_size():
+    try:
+        with open("config/config.yaml", 'r') as f:
+            cfg = yaml.safe_load(f)
+        return cfg.get("preprocessing", {}).get("window_size", 700)
+    except Exception:
+        return 700
 
 def extract_windows(features, labels, window_size=700, overlap=0.5):
     step = max(1, int(window_size * (1 - overlap)))
@@ -38,7 +47,8 @@ def generate_all():
         with open(path, 'rb') as f:
             data = pickle.load(f)
             
-        X, y = extract_windows(data["features"], data["labels"])
+        ws = _load_window_size()
+        X, y = extract_windows(data["features"], data["labels"], window_size=ws)
         with open(out_path, 'wb') as f:
             pickle.dump({"features": X, "labels": y}, f)
         logger.info(f"Saved windows for {subj}: X {X.shape}, y {y.shape}")

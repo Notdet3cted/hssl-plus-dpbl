@@ -78,7 +78,9 @@ class HSSLTrainer:
                 
         return train_data
 
-    def train_fold(self, test_subject, epochs=50, batch_size=128, window_size=700):
+    def train_fold(self, test_subject, epochs=50, batch_size=128, window_size=None):
+        if window_size is None:
+            window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         self.logger.info(f"Starting HSSL Training for Fold: {test_subject}")
         fold_ckpt_dir = os.path.join(self.checkpoints_dir, f"hssl_fold_{test_subject}")
         os.makedirs(fold_ckpt_dir, exist_ok=True)

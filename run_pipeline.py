@@ -34,9 +34,16 @@ if __name__ == "__main__":
         # Step 4: Window Generation
         run_command("python -m src.generate_windows", "Window Generation")
 
+    if args.mode in ["all", "server_ssl"]:
+        # SSL Pre-training (SimSiam baseline) - must run BEFORE HSSL and SSL+DPBL
+        run_command(f"python -m src.train_ssl --epochs {args.ssl_epochs}", "SSL Pre-training (SimSiam)")
+        run_command("python -m src.generate_ssl_embeddings", "Generate SSL Embeddings")
+
     if args.mode in ["all", "server_a"]:
         # RF and CNN training
         run_command(f"python -m src.run_all_folds --epochs {args.epochs} --models rf,cnn --skip_existing", "Train Classifiers (RF, CNN)")
+        # SSL classifier (uses SSL embeddings from server_ssl step)
+        run_command(f"python -m src.run_all_folds --epochs {args.epochs} --models ssl --skip_existing", "Train Classifiers (SSL)")
 
     if args.mode in ["all", "server_b"]:
         # HSSL Pre-training, Embeddings, and Classifier
@@ -49,17 +56,18 @@ if __name__ == "__main__":
         # Note: server_c requires HSSL to be pre-trained. If running distributed, ensure 'checkpoints/' from server_b is copied here first.
         run_command(f"python -m src.train_dpbl --epochs {args.epochs}", "DPBL Training")
         run_command("python -m src.generate_dpbl_embeddings", "Generate DPBL Embeddings")
-        run_command(f"python -m src.run_all_folds --epochs {args.epochs} --models hssl+dpbl --skip_existing", "Train Classifiers (HSSL+DPBL)")
+        run_command(f"python -m src.run_all_folds --epochs {args.epochs} --models ssl+dpbl,hssl+dpbl --skip_existing", "Train Classifiers (SSL+DPBL, HSSL+DPBL)")
 
     if args.mode in ["all", "server_d"]:
         # Robustness Testing
         # Note: server_d requires 'embeddings/' from server_c to be copied here first.
-        run_command(f"python -m src.robustness_testing --n_iter {args.robust_iter} --epochs {args.epochs}", "Robustness Testing")
+        run_command(f"python -m src.robustness_testing --n_iters {args.robust_iter} --epochs {args.epochs}", "Robustness Testing")
 
     if args.mode in ["all", "eval"]:
         # Final Evaluation and Reporting
         # Note: If distributed, ensure all 'results/' and 'checkpoints/' from servers A, B, C, D are gathered here first.
         run_command("python -m src.evaluate_models", "Evaluate Models")
+        run_command("python -m src.compare_hssl_dpbl", "Compare HSSL vs HSSL+DPBL")
         run_command("python -m src.statistical_validation", "Statistical Validation")
         run_command("python -m src.reporting_visualization", "Reporting & Visualization")
         run_command("python -m src.generate_dashboard", "Dashboard Generation")

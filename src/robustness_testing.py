@@ -251,8 +251,8 @@ class RobustnessTester:
 
 def main():
     parser = argparse.ArgumentParser(description="Phase 7: Robustness Testing")
-    parser.add_argument("--n_iters", type=int, default=3, help="Number of experimental iterations (default 3 for testing)")
-    parser.add_argument("--epochs", type=int, default=10, help="Epochs per training (default 10 to speed up testing)")
+    parser.add_argument("--n_iters", type=int, default=30, help="Number of experimental iterations (default 30 for full robustness)")
+    parser.add_argument("--epochs", type=int, default=30, help="Epochs per training")
     parser.add_argument("--base_seed", type=int, default=42, help="Base random seed")
     parser.add_argument("--skip_existing", action="store_true", help="Skip if results already exist")
     parser.add_argument("--test_subject", type=str, default=None, help="Specific subject to test (e.g., S2) to save time")

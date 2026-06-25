@@ -18,7 +18,9 @@ class SSLEmbeddingGenerator:
         os.makedirs(self.embeddings_dir, exist_ok=True)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def generate_fold(self, test_subject, window_size=700):
+    def generate_fold(self, test_subject, window_size=None):
+        if window_size is None:
+            window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         self.logger.info(f"Generating SSL embeddings for Fold: {test_subject}")
         ssl_ckpt_dir = os.path.join(self.checkpoints_dir, "ssl_pretrain")
         best_path = os.path.join(ssl_ckpt_dir, "best.pt")

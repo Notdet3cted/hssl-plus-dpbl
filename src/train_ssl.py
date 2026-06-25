@@ -77,7 +77,7 @@ class SSLTrainer:
             self.logger.error("No data found for SSL pre-training")
             return
             
-        window_size = 700
+        window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         dataset = SSLDataset(all_data, window_size=window_size)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
         self.logger.info(f"SSL windows: {len(dataset)}")

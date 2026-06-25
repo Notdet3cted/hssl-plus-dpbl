@@ -33,7 +33,7 @@ class DpblEmbeddingGenerator:
         with open(norm_path, 'rb') as f:
             data = pickle.load(f)
         labels = data["labels"]
-        window_size = 700
+        window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         overlap = 0.5
         step = max(1, int(window_size * (1 - overlap)))
         window_labels = []
