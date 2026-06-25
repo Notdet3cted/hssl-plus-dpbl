@@ -15,10 +15,24 @@ class ExperimentTracker:
     def _load_config(self):
         try:
             with open(self.config_path, "r") as f:
-                return yaml.safe_load(f)
+                config = yaml.safe_load(f)
         except Exception as e:
             self.logger.error(f"Failed to load config: {e}")
             return {}
+
+        # Auto-detect Kaggle environment → override all paths to /kaggle/
+        if os.path.exists('/kaggle/input/wesad-wearable-stress-affect-detection-dataset'):
+            self.logger.info("Kaggle environment detected — overriding paths to /kaggle/working/")
+            config["paths"]["raw_data"] = "/kaggle/input/wesad-wearable-stress-affect-detection-dataset/"
+            for key in ["processed_data", "normalized_data", "windowed", "checkpoints",
+                        "embeddings", "embeddings_hssl", "embeddings_ssl",
+                        "embeddings_hssl_dpbl", "embeddings_ssl_dpbl",
+                        "logs", "reports", "results", "results_predictions",
+                        "experiments", "dashboard"]:
+                old = config["paths"].get(key, f"{key}/")
+                config["paths"][key] = f"/kaggle/working/{old.lstrip('/')}"
+
+        return config
 
     def _setup_experiment_dir(self):
         base_dir = self.config.get("paths", {}).get("experiments", "experiments/")

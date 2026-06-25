@@ -40,7 +40,7 @@ class SSLTrainer:
         self.tracker = ExperimentTracker()
         self.checkpoints_dir = self.tracker.config["paths"].get("checkpoints", "checkpoints")
         self.reports_dir = self.tracker.config["paths"].get("reports", "reports")
-        self.processed_dir = os.path.join("data", "processed")
+        self.processed_dir = self.tracker.config["paths"].get("processed_data", "data/processed/")
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.logger.info(f"SSL Pre-trainer on {self.device}")
 

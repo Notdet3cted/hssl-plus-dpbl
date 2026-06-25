@@ -14,11 +14,13 @@ class EmbeddingGenerator:
         self.tracker = ExperimentTracker()
         self.checkpoints_dir = self.tracker.config["paths"].get("checkpoints", "checkpoints")
         self.reports_dir = self.tracker.config["paths"].get("reports", "reports")
-        self.embeddings_dir = os.path.join("embeddings", "hssl")
+        self.embeddings_dir = self.tracker.config["paths"].get("embeddings_hssl", "embeddings/hssl/")
         os.makedirs(self.embeddings_dir, exist_ok=True)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
-    def generate_fold(self, test_subject, window_size=700):
+    def generate_fold(self, test_subject, window_size=None):
+        if window_size is None:
+            window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         self.logger.info(f"Generating embeddings for Fold: {test_subject}")
         fold_ckpt_dir = os.path.join(self.checkpoints_dir, f"hssl_fold_{test_subject}")
         best_path = os.path.join(fold_ckpt_dir, "best.pt")

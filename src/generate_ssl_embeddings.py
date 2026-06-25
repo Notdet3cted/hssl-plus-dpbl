@@ -14,7 +14,7 @@ class SSLEmbeddingGenerator:
         self.tracker = ExperimentTracker()
         self.checkpoints_dir = self.tracker.config["paths"].get("checkpoints", "checkpoints")
         self.reports_dir = self.tracker.config["paths"].get("reports", "reports")
-        self.embeddings_dir = os.path.join("embeddings", "ssl")
+        self.embeddings_dir = self.tracker.config["paths"].get("embeddings_ssl", "embeddings/ssl/")
         os.makedirs(self.embeddings_dir, exist_ok=True)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

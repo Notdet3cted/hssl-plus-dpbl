@@ -7,12 +7,19 @@ paths:
   raw_data: "data/raw/"
   processed_data: "data/processed/"
   normalized_data: "data/normalized/"
+  windowed: "data/windowed/"
   checkpoints: "checkpoints/"
   embeddings: "embeddings/"
+  embeddings_hssl: "embeddings/hssl/"
+  embeddings_ssl: "embeddings/ssl/"
+  embeddings_hssl_dpbl: "embeddings/hssl_dpbl/"
+  embeddings_ssl_dpbl: "embeddings/ssl_dpbl/"
   logs: "logs/"
   reports: "reports/"
   results: "results/"
+  results_predictions: "results/predictions/"
   experiments: "experiments/"
+  dashboard: "dashboard/"
 
 preprocessing:
   window_size: 700
