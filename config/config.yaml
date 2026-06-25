@@ -4,7 +4,8 @@ project:
   name: "WESAD_HSSL_DPBL"
 
 paths:
-  raw_data: "data/raw/"
+  # raw_data: "data/raw/"
+  raw_data: "/kaggle/input/datasets/orvile/wesad-wearable-stress-affect-detection-dataset"
   processed_data: "data/processed/"
   normalized_data: "data/normalized/"
   windowed: "data/windowed/"
