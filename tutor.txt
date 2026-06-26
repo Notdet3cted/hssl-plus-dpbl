@@ -1,0 +1,37 @@
+**`colab_pipeline.ipynb` berhasil dibuat & di-push ke GitHub** (`9a9d6ab`)
+
+## Cara Pakai di Google Colab (T4 GPU)
+
+### 1. Buka Colab:
+https://colab.research.google.com/
+
+### 2. File → Import Notebook → GitHub → paste:
+```
+https://github.com/Notdet3cted/hssl-plus-dpbl/blob/main/colab_pipeline.ipynb
+```
+
+### 3. Runtime → Change runtime type → **T4 GPU**
+
+### 4. Jalankan cell dari atas ke bawah
+
+### Persiapan Sebelum Run:
+
+| Step | Detail |
+|------|--------|
+| **Dataset** | Download WESAD dari https://uni-siegen.sciebo.de/s/HGdUkoNlW1Ub0Gx → upload `.zip` ke `/content/drive/MyDrive/wesad.zip` |
+| **Atau via Kaggle** | Upload `kaggle.json` ke Drive → ganti `METHOD = "A"` di Cell 2 |
+| **Config** | Jika path dataset berbeda, edit `config.yaml` → `raw_data:` |
+
+### Kenapa Colab lebih mudah?
+
+| Masalah Kaggle | Solusi Colab |
+|----------------|-------------|
+| Git clone diblokir | ✅ Clone langsung berhasil |
+| Dataset perlu Add Data | ✅ Upload ZIP ke Drive, extrak langsung |
+| Checkpoint hilang setelah sesi | ✅ Semua checkpoint & hasil otomatis di-copy ke Google Drive |
+| 12 jam timeout | ✅ Run All ulang → stage selesai di-skip, checkpoint dipulihkan dari Drive |
+
+### Hasil Akhir:
+- **Dashboard:** `MyDrive/hssl_dpbl_results/interactive_dashboard.html` — download & buka di browser
+- **Model weights:** `MyDrive/hssl_dpbl_checkpoints/`
+- **Metrics:** `MyDrive/hssl_dpbl_results/`
