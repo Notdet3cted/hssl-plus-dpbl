@@ -21,11 +21,17 @@ from datetime import datetime
 from src.logger import setup_logger
 from src.train_classifiers import ClassifierTrainer
 from src.evaluate_models import ModelEvaluator
+from src.experiment_tracker import ExperimentTracker
 
 logger = setup_logger("RobustnessTesting")
 
 # Model yang akan diuji
-MODELS = ["hssl+dpbl"] # Per requirements, only robust test HSSL+DPBL
+# Load models list from config (fallback to default)
+try:
+    cfg = ExperimentTracker().config
+    MODELS = cfg.get("robustness", {}).get("models", ["rf","cnn","ssl","hssl","ssl+dpbl","hssl+dpbl"])
+except Exception:
+    MODELS = ["rf","cnn","ssl","hssl","ssl+dpbl","hssl+dpbl"]
 METRICS = ["accuracy", "precision", "recall", "f1_score", "weighted_precision", "weighted_recall", "weighted_f1", "roc_auc", "pr_auc"]
 
 class RobustnessTester:
@@ -63,7 +69,17 @@ class RobustnessTester:
             logger.info(f"[Iter {iter_idx} | Seed {seed}] Fold {i+1}/{len(self.subjects)}: Subject {subj}")
             
             if skip_existing:
-                existing = [m for m in MODELS if os.path.exists(os.path.join(iter_results_dir, f"{m}_fold_{subj}.json"))]
+                existing = []
+                for m in MODELS:
+                    path = os.path.join(iter_results_dir, f"{m}_fold_{subj}.json")
+                    if os.path.exists(path):
+                        # Verify JSON can be loaded
+                        try:
+                            with open(path, 'r') as f:
+                                json.load(f)
+                            existing.append(m)
+                        except Exception as e:
+                            logger.warning(f"Result file {path} corrupted ({e}); will recompute.")
                 missing = [m for m in MODELS if m not in existing]
                 if not missing:
                     logger.info(f"Skipping {subj} — all results exist for iter {iter_idx}.")

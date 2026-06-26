@@ -89,7 +89,10 @@ class DPBLTrainer:
         
         # Subject-level separation: hold out 1 subject for validation
         # This prevents subject identity leakage across train/val split
-        np.random.seed(42)
+        # Seed per fold to avoid same validation subject each fold
+        base_seed = self.tracker.config.get("project", {}).get("seed", 42)
+        fold_seed = (base_seed + hash(test_subject)) % 100000
+        np.random.seed(fold_seed)
         perm = np.random.permutation(train_subjects)
         val_subject = perm[0] if len(perm) >= 2 else None
         train_subjects_clean = perm[1:] if len(perm) >= 2 else perm
@@ -113,7 +116,9 @@ class DPBLTrainer:
             labels = self.get_window_labels(subj, norm_dir)
             
             # Compute baseline from first N windows (no labels)
-            baseline = self.compute_baseline_no_label(emb_data, n_calibration=30)
+            # n_calibration from config (default 30)
+        n_cal = self.tracker.config.get("dpbl", {}).get("n_calibration", 30)
+            baseline = self.compute_baseline_no_label(emb_data, n_calibration=n_cal)
             self.tracker_bsl.update_baseline(subj, baseline.reshape(1, -1))
                 
             dataset = DpblDataset(emb_data, labels, baseline)
@@ -140,7 +145,8 @@ class DPBLTrainer:
         self.model = DPBL(embedding_dim=embedding_dim).to(self.device)
         
         # WESAD labels: 1=Baseline, 2=Stress, 3=Amusement, 4=Meditation → 5 classes
-        classifier = nn.Linear(embedding_dim, 5).to(self.device)
+        # Binary classification (stress vs non‑stress)
+        classifier = nn.Linear(embedding_dim, 2).to(self.device)
         
         criterion = nn.CrossEntropyLoss()
         optimizer = optim.Adam(list(self.model.parameters()) + list(classifier.parameters()), lr=0.001)

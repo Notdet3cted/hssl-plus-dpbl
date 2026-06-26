@@ -25,8 +25,17 @@ paths:
 preprocessing:
   window_size: 700
   overlap: 0.5
-  target_fps: 35
+  target_fps: 700
   channels: ["EDA", "BVP"]
+  # Band‑pass filter parameters
+  filter:
+    low_cut: 0.3
+    high_cut: 45.0
+    order: 4
+  # Augmentation parameters
+  augmentation:
+    noise_level: 0.05
+    scale_factor: 0.1
 
 training:
   batch_size: 128
@@ -43,7 +52,11 @@ ssl_pretraining:
 
 dpbl:
   hidden_dim: 128
-  n_calibration_windows: 30
+  n_calibration: 30
+
+# Robustness testing models
+robustness:
+  models: ["rf","cnn","ssl","hssl","ssl+dpbl","hssl+dpbl"]
 
 evaluation:
   metrics: ["accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]

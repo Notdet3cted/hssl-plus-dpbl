@@ -74,6 +74,8 @@ class ClassifierTrainer:
             torch.cuda.manual_seed_all(seed)
 
     def load_windowed_data(self, test_subject):
+        # Ensure no leakage: test subject must not be in training set
+        assert test_subject not in self.folds[test_subject]["train"], "Data leakage: test subject found in training set"
         train_subjs = self.folds[test_subject]["train"]
         test_subjs = self.folds[test_subject]["test"]
         def _load_group(subjs):
@@ -92,6 +94,8 @@ class ClassifierTrainer:
         return X_train, y_train, X_test, y_test
 
     def load_embeddings(self, test_subject, emb_dir, use_dpbl=False):
+        # Ensure no leakage: test subject must not be in training set
+        assert test_subject not in self.folds[test_subject]["train"], "Data leakage: test subject found in training set"
         train_subjs = self.folds[test_subject]["train"]
         test_subjs = self.folds[test_subject]["test"]
         fold_dir = os.path.join(emb_dir, f"fold_{test_subject}")

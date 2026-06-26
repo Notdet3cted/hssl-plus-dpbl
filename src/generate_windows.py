@@ -29,8 +29,11 @@ def generate_all():
     with open(folds_path, 'r') as f:
         folds = json.load(f)
     
-    subjs = folds["S2"]["train"] + folds["S2"]["test"]
-    norm_dir = folds["S2"]["normalized_data_dir"]
+        # Use the first fold key dynamically (any subject works)
+        first_fold_key = next(iter(folds))
+        subjs = folds[first_fold_key]["train"] + folds[first_fold_key]["test"]
+# Use the same normalized data directory as the first fold key
+norm_dir = folds[first_fold_key]["normalized_data_dir"]
     
     os.makedirs(windowed_dir, exist_ok=True)
     

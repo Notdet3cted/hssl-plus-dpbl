@@ -1,4 +1,5 @@
 import torch
+from src.experiment_tracker import ExperimentTracker
 
 class SignalAugmentations:
     @staticmethod
@@ -8,6 +9,12 @@ class SignalAugmentations:
 
     @staticmethod
     def scale(x, scale_factor=0.1):
+        # Load scale factor from config if available
+        try:
+            cfg = ExperimentTracker().config
+            scale_factor = cfg.get("preprocessing", {}).get("augmentation", {}).get("scale_factor", scale_factor)
+        except Exception:
+            pass
         scale = torch.empty(x.shape[0], 1, 1).uniform_(1 - scale_factor, 1 + scale_factor).to(x.device)
         return x * scale
 

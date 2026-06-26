@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-from scipy.signal import resample
+from scipy.signal import resample, butter, filtfilt
 from src.logger import setup_logger
 from src.experiment_tracker import ExperimentTracker
 
@@ -61,21 +61,37 @@ class DataPreprocessing:
             # WESAD labels: 1=baseline, 2=stress, 3=amusement
             mask = np.isin(labels, [1, 2, 3])
             filtered_labels = labels[mask]
+            # Band‑pass filter parameters from config
+            fp = self.tracker.config.get("preprocessing", {}).get("filter", {})
+            low = fp.get("low_cut", 0.3)
+            high = fp.get("high_cut", 45.0)
+            order = fp.get("order", 4)
+            fs = self.target_fps if self.target_fps else 700
+            nyq = 0.5 * fs
+            low_norm = low / nyq
+            high_norm = high / nyq
+            b, a = butter(order, [low_norm, high_norm], btype='band')
+            
             binary_labels = np.where(filtered_labels == 2, 1, 0)
-
             # Extract and align multi-channel features
             channel_arrays = []
             for ch_name in self.channels:
                 ch_upper = ch_name.upper()
                 if ch_upper in chest_data:
-                    raw_signal = chest_data[ch_upper].flatten()
-                    # Apply label mask
-                    masked_signal = raw_signal[mask]
-                    # Resample if needed
-                    if target_fs != CHEST_FS:
-                        masked_signal = self._resample_to_target(masked_signal, CHEST_FS, target_fs)
-                    channel_arrays.append(masked_signal)
-                    self.logger.info(f"  {subject} channel {ch_upper}: {masked_signal.shape[0]} samples")
+                raw_signal = chest_data[ch_upper].flatten()
+                # Apply band‑pass filter
+                try:
+                    filtered_signal = filtfilt(b, a, raw_signal)
+                except Exception as e:
+                    self.logger.warning(f"Filtering failed for {ch_upper}: {e}")
+                    filtered_signal = raw_signal
+                # Apply label mask
+                masked_signal = filtered_signal[mask]
+                # Resample if needed
+                if target_fs != CHEST_FS:
+                    masked_signal = self._resample_to_target(masked_signal, CHEST_FS, target_fs)
+                channel_arrays.append(masked_signal)
+                self.logger.info(f"  {subject} channel {ch_upper}: {masked_signal.shape[0]} samples")
                 else:
                     self.logger.warning(f"  Channel {ch_upper} not found in chest data for {subject}. Skipping channel.")
 
