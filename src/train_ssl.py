@@ -29,9 +29,10 @@ class SSLDataset(Dataset):
     def __getitem__(self, idx):
         x = self.windows[idx]
         # Two random crops/augmentations for SimSiam
-        x1 = x + torch.randn_like(torch.tensor(x)) * 0.02
-        x2 = x + torch.randn_like(torch.tensor(x)) * 0.02
-        return torch.tensor(x, dtype=torch.float32), torch.tensor(x1, dtype=torch.float32), torch.tensor(x2, dtype=torch.float32)
+        x_tensor = torch.tensor(x, dtype=torch.float32)
+        x1 = x_tensor + torch.randn_like(x_tensor) * 0.02
+        x2 = x_tensor + torch.randn_like(x_tensor) * 0.02
+        return x_tensor, x1, x2
 
 
 class SSLTrainer:
