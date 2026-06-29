@@ -61,6 +61,13 @@ class DpblEmbeddingGenerator:
         
         fold_emb_dir_in = os.path.join(self.hssl_embeddings_dir, f"fold_{test_subject}")
         fold_emb_dir_out = os.path.join(self.dpbl_embeddings_dir, f"fold_{test_subject}")
+        
+        # Skip-check: if ALL subjects already have embeddings, skip
+        all_exist = all(os.path.exists(os.path.join(fold_emb_dir_out, f"{s}_embeddings.pkl")) for s in subjects)
+        if all_exist:
+            self.logger.info(f"All DPBL embeddings for fold {test_subject} already exist. Skipping.")
+            return
+
         os.makedirs(fold_emb_dir_out, exist_ok=True)
         
         # Determine embedding dimension

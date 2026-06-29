@@ -54,7 +54,21 @@ def main():
         run_command("python -m src.generate_windows", "Window Generation")
     
     if args.mode in ["all", "server_ssl"]:
-        run_command(f"python -m src.train_ssl --epochs {args.ssl_epochs}", "SSL Pre-training (SimSiam)")
+        # SSL pre-training per fold (strict LOSO)
+        from src.experiment_tracker import ExperimentTracker
+        import json
+        tracker = ExperimentTracker()
+        reports_dir = tracker.config["paths"].get("reports", "reports")
+        loso_path = os.path.join(reports_dir, "loso_folds.json")
+        with open(loso_path, 'r') as f:
+            folds = json.load(f)
+        subjects = list(folds.keys())
+        logger.info(f"SSL LOSO pre-training on {len(subjects)} folds: {subjects}")
+        for s in subjects:
+            logger.info(f"--- SSL Fold {s} ---")
+            ret = os.system(f"python -m src.train_ssl --test_subject {s} --epochs {args.ssl_epochs}")
+            if ret != 0:
+                logger.error(f"SSL Fold {s} FAILED. Continuing to next fold.")
         run_command("python -m src.generate_ssl_embeddings", "Generate SSL Embeddings")
     
     if args.mode in ["all", "server_a"]:

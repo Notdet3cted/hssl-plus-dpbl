@@ -52,9 +52,21 @@ class EmbeddingGenerator:
             return
             
         fold_emb_dir = os.path.join(self.embeddings_dir, f"fold_{test_subject}")
+        
+        # Skip-check: if ALL subjects already have embeddings, skip
+        all_exist = all(os.path.exists(os.path.join(fold_emb_dir, f"{s}_embeddings.pkl")) for s in subjects)
+        if all_exist:
+            self.logger.info(f"All HSSL embeddings for fold {test_subject} already exist. Skipping.")
+            return
+
         os.makedirs(fold_emb_dir, exist_ok=True)
         
         for subj in subjects:
+            out_path = os.path.join(fold_emb_dir, f"{subj}_embeddings.pkl")
+            if os.path.exists(out_path):
+                self.logger.info(f"{subj} embeddings already exist. Skipping.")
+                continue
+
             path = os.path.join(norm_dir, f"{subj}_normalized.pkl")
             with open(path, 'rb') as f:
                 data = pickle.load(f)

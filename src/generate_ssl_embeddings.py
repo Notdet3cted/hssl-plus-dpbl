@@ -22,7 +22,7 @@ class SSLEmbeddingGenerator:
         if window_size is None:
             window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         self.logger.info(f"Generating SSL embeddings for Fold: {test_subject}")
-        ssl_ckpt_dir = os.path.join(self.checkpoints_dir, "ssl_pretrain")
+        ssl_ckpt_dir = os.path.join(self.checkpoints_dir, f"ssl_fold_{test_subject}")
         best_path = os.path.join(ssl_ckpt_dir, "best.pt")
         
         folds_path = os.path.join(self.reports_dir, "loso_folds.json")
@@ -35,6 +35,13 @@ class SSLEmbeddingGenerator:
         norm_dir = folds[test_subject]["normalized_data_dir"]
         subjects = folds[test_subject]["train"] + folds[test_subject]["test"]
         
+        # Skip-check: if ALL subjects already have embeddings, skip
+        fold_emb_dir = os.path.join(self.embeddings_dir, f"fold_{test_subject}")
+        all_exist = all(os.path.exists(os.path.join(fold_emb_dir, f"{s}_embeddings.pkl")) for s in subjects)
+        if all_exist:
+            self.logger.info(f"All SSL embeddings for fold {test_subject} already exist. Skipping.")
+            return
+
         sample_path = os.path.join(norm_dir, f"{subjects[0]}_normalized.pkl")
         with open(sample_path, 'rb') as f:
             sample_data = pickle.load(f)
@@ -50,10 +57,14 @@ class SSLEmbeddingGenerator:
             self.logger.error(f"No checkpoint at {best_path}. Run SSL pre-training first.")
             return
             
-        fold_emb_dir = os.path.join(self.embeddings_dir, f"fold_{test_subject}")
         os.makedirs(fold_emb_dir, exist_ok=True)
         
         for subj in subjects:
+            out_path = os.path.join(fold_emb_dir, f"{subj}_embeddings.pkl")
+            if os.path.exists(out_path):
+                self.logger.info(f"{subj} embeddings already exist. Skipping.")
+                continue
+
             path = os.path.join(norm_dir, f"{subj}_normalized.pkl")
             with open(path, 'rb') as f:
                 data = pickle.load(f)
@@ -85,7 +96,6 @@ class SSLEmbeddingGenerator:
                 "labels": np.concatenate(all_labels, axis=0)
             }
             
-            out_path = os.path.join(fold_emb_dir, f"{subj}_embeddings.pkl")
             with open(out_path, 'wb') as f:
                 pickle.dump(res, f)
                 
