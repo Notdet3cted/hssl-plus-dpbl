@@ -5,7 +5,7 @@ project:
 
 paths:
   raw_data: "data/raw/"
-  processed_data: "data/processed/"
+  processed_data: "/content/drive/MyDrive/hssl_dpbl_data/processed/"
   normalized_data: "/content/drive/MyDrive/hssl_dpbl_data/normalized/"
   windowed: "/content/drive/MyDrive/hssl_dpbl_data/windowed/"
   checkpoints: "/content/drive/MyDrive/hssl_dpbl_checkpoints/"
@@ -14,11 +14,11 @@ paths:
   embeddings_ssl: "/content/drive/MyDrive/hssl_dpbl_data/embeddings/ssl/"
   embeddings_hssl_dpbl: "/content/drive/MyDrive/hssl_dpbl_data/embeddings/hssl_dpbl/"
   embeddings_ssl_dpbl: "/content/drive/MyDrive/hssl_dpbl_data/embeddings/ssl_dpbl/"
-  logs: "logs/"
+  logs: "/content/drive/MyDrive/hssl_dpbl_logs/"
   reports: "/content/drive/MyDrive/hssl_dpbl_reports/"
   results: "/content/drive/MyDrive/hssl_dpbl_results/"
   results_predictions: "/content/drive/MyDrive/hssl_dpbl_results/predictions/"
-  experiments: "experiments/"
+  experiments: "/content/drive/MyDrive/hssl_dpbl_experiments/"
   dashboard: "/content/drive/MyDrive/hssl_dpbl_results/"
 
 preprocessing:
@@ -55,7 +55,7 @@ dpbl:
 
 # Robustness testing models
 robustness:
-  models: ["rf","cnn","ssl","hssl","ssl+dpbl","hssl+dpbl"]
+  models: ["hssl+dpbl"]
 
 evaluation:
   metrics: ["accuracy", "precision", "recall", "f1_score", "roc_auc", "pr_auc"]

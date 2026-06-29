@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from src.logger import setup_logger
 from src.experiment_tracker import ExperimentTracker
@@ -22,12 +23,17 @@ class DataAcquisition:
         # Skip jika di Kaggle (dataset sudah di-mount)
         if self.is_kaggle:
             self.logger.info("Skipping download — WESAD dataset is mounted as Kaggle input.")
-            return
+            return True
 
-        # Skip jika sudah ada
-        if os.path.exists(self.extract_path) and len(os.listdir(self.extract_path)) > 0:
-            self.logger.info("Dataset already exists. Skipping download.")
-            return
+        # Validate existing dataset first — if corrupt, remove and re-download
+        if os.path.exists(self.extract_path):
+            if not self.validate_structure():
+                self.logger.warning("Existing dataset is incomplete/corrupt. Removing and re-downloading...")
+                import shutil
+                shutil.rmtree(self.extract_path, ignore_errors=True)
+            else:
+                self.logger.info("Dataset already exists and is valid. Skipping download.")
+                return True
 
         self.logger.info(f"Downloading dataset {self.dataset_name} using Kaggle API...")
         try:
@@ -39,6 +45,14 @@ class DataAcquisition:
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Failed to download dataset via Kaggle API: {e}")
             self.logger.error("Please ensure you have Kaggle API credentials configured (kaggle.json).")
+            return False
+
+        # Validate after download
+        if not self.validate_structure():
+            self.logger.error("Downloaded dataset structure is invalid. Cannot proceed.")
+            return False
+
+        return True
 
     def validate_structure(self):
         subjects = [f"S{i}" for i in range(2, 18) if i != 12]  # S12 doesn't exist in WESAD
@@ -55,5 +69,8 @@ class DataAcquisition:
 
 if __name__ == "__main__":
     acq = DataAcquisition()
-    acq.download_dataset()
-    acq.validate_structure()
+    success = acq.download_dataset()
+    if not success:
+        sys.exit(1)
+    if not acq.validate_structure():
+        sys.exit(1)

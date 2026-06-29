@@ -1,8 +1,9 @@
 import logging
 import os
+import yaml
 from datetime import datetime
 
-def setup_logger(name="WESAD_HSSL_DPBL"):
+def setup_logger(name="WESAD_HSSL_DPBL", log_dir=None):
     logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
 
@@ -11,10 +12,21 @@ def setup_logger(name="WESAD_HSSL_DPBL"):
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
 
-        # File Handler
-        os.makedirs("logs", exist_ok=True)
+        # Determine log directory: arg > env var > config file > fallback
+        if log_dir is None:
+            log_dir = os.environ.get("HSSL_DPBL_LOG_DIR")
+        if log_dir is None:
+            try:
+                with open("config/config.yaml", "r") as f:
+                    cfg = yaml.safe_load(f)
+                log_dir = cfg.get("paths", {}).get("logs", "logs/")
+            except Exception:
+                log_dir = "logs/"
+
+        os.makedirs(log_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_handler = logging.FileHandler(f"logs/experiment_{timestamp}.log")
+        log_path = os.path.join(log_dir, f"experiment_{timestamp}.log")
+        file_handler = logging.FileHandler(log_path)
         file_handler.setLevel(logging.INFO)
 
         # Formatter
@@ -25,8 +37,11 @@ def setup_logger(name="WESAD_HSSL_DPBL"):
         logger.addHandler(console_handler)
         logger.addHandler(file_handler)
 
+        logger.info(f"Log file: {log_path}")
+
     return logger
 
 if __name__ == "__main__":
     log = setup_logger()
     log.info("Logger initialized.")
+

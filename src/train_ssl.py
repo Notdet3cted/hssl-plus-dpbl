@@ -77,7 +77,7 @@ class SSLTrainer:
         if not all_data:
             self.logger.error("No data found for SSL pre-training")
             return
-            
+
         window_size = self.tracker.config.get("preprocessing", {}).get("window_size", 700)
         dataset = SSLDataset(all_data, window_size=window_size)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
@@ -95,9 +95,22 @@ class SSLTrainer:
         ssl_ckpt_dir = os.path.join(self.checkpoints_dir, "ssl_pretrain")
         os.makedirs(ssl_ckpt_dir, exist_ok=True)
         
+        # Resume from checkpoint if exists
+        latest_path = os.path.join(ssl_ckpt_dir, "latest.pt")
+        best_path = os.path.join(ssl_ckpt_dir, "best.pt")
+        start_epoch = 1
         best_loss = float('inf')
         
-        for epoch in range(1, epochs + 1):
+        if os.path.exists(latest_path):
+            self.logger.info(f"Found SSL checkpoint at {latest_path}. Resuming...")
+            checkpoint = torch.load(latest_path, map_location=self.device)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            start_epoch = checkpoint['epoch'] + 1
+            best_loss = checkpoint.get('best_loss', best_loss)
+            self.logger.info(f"Resumed SSL from epoch {start_epoch - 1} with best loss {best_loss:.4f}")
+        
+        for epoch in range(start_epoch, epochs + 1):
             model.train()
             epoch_loss = 0.0
             for _, x1, x2 in dataloader:
@@ -123,12 +136,22 @@ class SSLTrainer:
             
             self.logger.info(f"[SSL] Epoch {epoch}/{epochs} Loss: {avg_loss:.4f} LR: {scheduler.get_last_lr()[0]:.6f}")
             
+            # Save latest checkpoint (with optimizer state for resume)
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': avg_loss,
+                'best_loss': min(best_loss, avg_loss)
+            }, latest_path)
+            
             # Save best
             if avg_loss < best_loss:
                 best_loss = avg_loss
-                torch.save(model.state_dict(), os.path.join(ssl_ckpt_dir, "best.pt"))
+                torch.save(model.state_dict(), best_path)
                 self.logger.info(f"[*] New best SSL checkpoint! Loss: {best_loss:.4f}")
         
+        # Save final
         torch.save(model.state_dict(), os.path.join(ssl_ckpt_dir, "final.pt"))
         self.logger.info(f"SSL pre-training complete. Best loss: {best_loss:.4f}")
         
@@ -145,3 +168,4 @@ if __name__ == "__main__":
     
     trainer = SSLTrainer()
     trainer.run(epochs=args.epochs, batch_size=args.batch_size)
+
