@@ -1,54 +1,15 @@
 import os
 import json
 import pickle
-import numpy as np
 import torch
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from src.logger import setup_logger
 from src.experiment_tracker import ExperimentTracker
 from src.models.hssl import HSSLEncoder
 from src.models.ssl_loss import NTXentLoss
 from src.augmentations import SignalAugmentations
-
-class WESADDataset(Dataset):
-    def __init__(self, data_list, window_size=700, overlap=0.5):
-        """
-        data_list: list of loaded processed/normalized pickle dicts
-        window_size: 700 (1 second of EDA at 700Hz as default example)
-        """
-        self.windows = []
-        step = max(1, int(window_size * (1 - overlap)))
-        
-        self.labels = []
-        for d in data_list:
-            feat = d["features"]
-            lbl = d.get("labels", None)
-            
-            # Ensure shape is (Time, Channels)
-            if feat.ndim == 1:
-                feat = feat.reshape(-1, 1)
-                
-            n_samples = feat.shape[0]
-            for i in range(0, n_samples - window_size + 1, step):
-                w = feat[i:i+window_size]
-                self.windows.append(w)
-                
-                if lbl is not None:
-                    w_lbls = lbl[i:i+window_size]
-                    val, counts = np.unique(w_lbls, return_counts=True)
-                    self.labels.append(val[np.argmax(counts)])
-                else:
-                    self.labels.append(-1)
-                
-    def __len__(self):
-        return len(self.windows)
-        
-    def __getitem__(self, idx):
-        # Convert to (Channels, Sequence_Length)
-        w = self.windows[idx]
-        l = self.labels[idx]
-        return torch.tensor(w, dtype=torch.float32).transpose(0, 1), torch.tensor(l, dtype=torch.long)
+from src.hssl_dataset import HSSLDataset
 
 class HSSLTrainer:
     def __init__(self):
@@ -89,16 +50,22 @@ class HSSLTrainer:
         self.logger.info("Loading normalized fold data...")
         train_data = self.load_fold_data(test_subject)
         
-        dataset = WESADDataset(train_data, window_size=window_size)
+        # Skip if best checkpoint already exists
+        best_path = os.path.join(fold_ckpt_dir, "best.pt")
+        if os.path.exists(best_path):
+            self.logger.info(f"Fold {test_subject} already completed (best.pt exists). Skipping.")
+            return
+
+        dataset = HSSLDataset(train_data, window_size=window_size)
         if len(dataset) == 0:
              self.logger.error("Dataset is empty after windowing. Check data preprocessing.")
              return
              
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=2, pin_memory=True)
         self.logger.info(f"Total training windows: {len(dataset)} ({len(dataloader)} batches)")
         
         # Determine channels dynamically based on dataset
-        sample_batch, _ = next(iter(dataloader))
+        sample_batch = next(iter(dataloader))
         channels = sample_batch.shape[1]
         self.logger.info(f"Detected channels: {channels}, Sequence length: {sample_batch.shape[2]}")
         
@@ -138,7 +105,7 @@ class HSSLTrainer:
         for epoch in range(start_epoch, epochs + 1):
             epoch_loss = 0.0
             
-            for batch_idx, (x, _) in enumerate(dataloader):
+            for batch_idx, x in enumerate(dataloader):
                 x = x.to(self.device)
                 x_i, x_j = SignalAugmentations.get_views(x)
                 

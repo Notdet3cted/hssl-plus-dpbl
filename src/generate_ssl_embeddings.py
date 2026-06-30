@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from src.logger import setup_logger
 from src.experiment_tracker import ExperimentTracker
 from src.models.ssl.simsiam import SSLEncoder
-from src.train_hssl import WESADDataset
+from src.hssl_dataset import WindowLabelDataset
 
 class SSLEmbeddingGenerator:
     def __init__(self):
@@ -69,7 +69,7 @@ class SSLEmbeddingGenerator:
             with open(path, 'rb') as f:
                 data = pickle.load(f)
                 
-            dataset = WESADDataset([data], window_size=window_size)
+            dataset = WindowLabelDataset(data["features"], data.get("labels"), window_size=window_size)
             if len(dataset) == 0:
                 self.logger.warning(f"No windows for {subj}. Skipping.")
                 continue
